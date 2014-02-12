@@ -21,9 +21,4 @@
 			"sweelix\\curl\\" : ""
 		}
 	},
-	"extra" : {
-		"branch-alias" : {
-			"dev-master" : "devel"
-		}
-	}
 }

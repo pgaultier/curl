@@ -44,20 +44,48 @@ namespace sweelix\curl;
  * @package   sweelix.curl
  */
 class Request  {
-	protected static $_authenticationTypes = array('BASIC', 'DIGEST', 'GSSNEGOTIATE', 'NTLM', 'ANY', 'ANYSAFE');
-	protected $_url;
-	protected $_headers=array();
-	protected $_body;
-	protected $_method='GET';
-	protected $_curlOptions=array();
-	protected $_parameters;
+	/**
+	 * @var array Allowed authentication types
+	 */
+	protected static $authenticationTypes = array('BASIC', 'DIGEST', 'GSSNEGOTIATE', 'NTLM', 'ANY', 'ANYSAFE');
+	/**
+	 * @var string requested url
+	 */
+	protected $url;
+	/**
+	 * @var array headers to add to the request
+	 */
+	protected $headers=array();
+	/**
+	 * @var mixed body data, can be a string or an array
+	 */
+	protected $body;
+	/**
+	 * @var string VERB used to perfor the request
+	 */
+	protected $method='GET';
+	/**
+	 * @var array options passed to curl request
+	 */
+	protected $curlOptions=array();
+	/**
+	 * @var array query string parameters
+	 */
+	protected $parameters;
 
+	/**
+	 * Construct a new request
+	 *
+	 * @param string $url target URL
+	 *
+	 * @since 1.0.0
+	 */
 	public function __construct($url) {
-		$this->_url=$url;
+		$this->url=$url;
 	}
 
 	/**
-	 * Add curl option to current request
+	 * Add a curl option to current request
 	 *
 	 * @param mixed $curlOption curl option key
 	 * @param mixed $value      curl option value
@@ -66,7 +94,7 @@ class Request  {
 	 * @since  1.0.0
 	 */
 	public function setOption($curlOption, $value) {
-		$this->_curlOptions[$curlOption] = $value;
+		$this->curlOptions[$curlOption] = $value;
 	}
 
 	/**
@@ -92,7 +120,7 @@ class Request  {
 	 * @since  1.0.0
 	 */
 	public function setBody($body=null) {
-		$this->_body = $body;
+		$this->body = $body;
 	}
 
 	/**
@@ -104,7 +132,7 @@ class Request  {
 	 * @since  1.0.0
 	 */
 	public function setUrlParameters($parameters) {
-		$this->_parameters = $parameters;
+		$this->parameters = $parameters;
 	}
 
 	/**
@@ -117,7 +145,7 @@ class Request  {
 	 * @since  1.0.0
 	 */
 	public function setHeaderField($field, $content) {
-		$this->_headers[] = $field.': '.$content;
+		$this->headers[] = $field.': '.$content;
 	}
 
 	/**
@@ -132,7 +160,7 @@ class Request  {
 	 */
 	public function setHttpAuthentication($username = '', $password = '', $type = 'any') {
 		$type = strtoupper($type);
-		if(in_array($type, self::$_authenticationTypes) === true) {
+		if(in_array($type, self::$authenticationTypes) === true) {
 			$this->setOption(CURLOPT_HTTPAUTH, constant('CURLAUTH_' . $type));
 			$this->setOption(CURLOPT_USERPWD, $username.':'.$password);
 		}
@@ -148,7 +176,7 @@ class Request  {
 	 */
 	public function setMethod($method) {
 		if(in_array($method,array('GET','POST','PUT','DELETE','HEAD'))) {
-			$this->_method = $method;
+			$this->method = $method;
 		}
 	}
 
@@ -211,17 +239,17 @@ class Request  {
 		$this->_setMethod();
 		$this->_setBody();
 
-		if(is_array($this->_parameters) === true) {
+		if(is_array($this->parameters) === true) {
 			$params = '';
-			if(strpos('?', $this->_url) === false) {
+			if(strpos('?', $this->url) === false) {
 				$params = '?';
 			}
-			$params .= http_build_query($this->_parameters);
-			$this->setOption(CURLOPT_URL, $this->_url.$params);
+			$params .= http_build_query($this->parameters);
+			$this->setOption(CURLOPT_URL, $this->url.$params);
 		} else {
-			$this->setOption(CURLOPT_URL, $this->_url);
+			$this->setOption(CURLOPT_URL, $this->url);
 		}
-		$this->setOption(CURLOPT_HTTPHEADER, $this->_headers);
+		$this->setOption(CURLOPT_HTTPHEADER, $this->headers);
 		$this->setOption(CURLOPT_HEADERFUNCTION,
 			function($ch, $data) use(&$responseHeaders) {
 				$responseHeaders.=$data;
@@ -236,7 +264,7 @@ class Request  {
 		);
 		try {
 			$ch = curl_init();
-			curl_setopt_array($ch, $this->_curlOptions);
+			curl_setopt_array($ch, $this->curlOptions);
 			curl_exec($ch);
 			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 			curl_close($ch);
@@ -269,7 +297,7 @@ class Request  {
 	 * @since  1.0.0
 	 */
 	protected function _setMethod() {
-		switch($this->_method) {
+		switch($this->method) {
 			case 'GET' :
 				$this->setOption(CURLOPT_HTTPGET, true);
 				break;
@@ -279,7 +307,7 @@ class Request  {
 			case 'HEAD':
 			case 'PUT':
 			case 'DELETE':
-				$this->setOption(CURLOPT_CUSTOMREQUEST, $this->_method);
+				$this->setOption(CURLOPT_CUSTOMREQUEST, $this->method);
 				break;
 		}
 	}
@@ -291,11 +319,11 @@ class Request  {
 	 * @since  1.0.0
 	 */
 	private function _setBody() {
-		if($this->_body !== null) {
-			switch($this->_method) {
+		if($this->body !== null) {
+			switch($this->method) {
 				case 'POST' :
 				case 'PUT' :
-					$this->setOption(CURLOPT_POSTFIELDS, $this->_body);
+					$this->setOption(CURLOPT_POSTFIELDS, $this->body);
 					break;
 				case 'GET' :
 				case 'DELETE':

@@ -29,27 +29,39 @@ namespace sweelix\curl;
  * @package   sweelix.curl
  */
 class Response {
-	protected $_statusCode;
-	protected $_headers;
-	protected $_lHeaders;
-	protected $_body;
+	/**
+	 * @var integer response status code
+	 */
+	protected $statusCode;
+	/**
+	 * @var array response headers
+	 */
+	protected $headers;
+	/**
+	 * @var array response headers (with lower case keys)
+	 */
+	protected $lowercaseHeaders;
+	/**
+	 * @var string response body
+	 */
+	protected $body;
 	/**
 	 * Create curl response
 	 *
-	 * @param integer $httpCode http status code
-	 * @param array   $headers  response headers
-	 * @param string  $body     reponse body
+	 * @param integer $statusCode http status code
+	 * @param array   $headers    response headers
+	 * @param string  $body       reponse body
 	 *
 	 * @return Response
 	 * @since  1.0.0
 	 */
 	public function __construct($statusCode, $headers=null, $body=null) {
-		$this->_statusCode = $statusCode;
-		$this->_headers = $this->_parseHeaders($headers);
-		if(is_array($this->_headers) === true) {
-			$this->_lHeaders = array_change_key_case($this->_headers, CASE_LOWER);
+		$this->statusCode = $statusCode;
+		$this->headers = $this->_parseHeaders($headers);
+		if(is_array($this->headers) === true) {
+			$this->lowercaseHeaders = array_change_key_case($this->headers, CASE_LOWER);
 		}
-		$this->_body = $body;
+		$this->body = $body;
 	}
 	/**
 	 * Return current status code
@@ -58,7 +70,7 @@ class Response {
 	 * @since  1.0.0
 	 */
 	public function getStatus() {
-		return $this->_statusCode;
+		return $this->statusCode;
 	}
 	/**
 	 * Get response headers
@@ -67,7 +79,7 @@ class Response {
 	 * @since  1.0.0
 	 */
 	public function getHeaders() {
-		return $this->_headers;
+		return $this->headers;
 	}
 	/**
 	 * Get response header
@@ -79,8 +91,8 @@ class Response {
 	 */
 	public function getHeaderField($field) {
 		$field = strtolower($field);
-		if(isset($this->_lHeaders[$field]) === true) {
-			return $this->_lHeaders[$field];
+		if(isset($this->lowercaseHeaders[$field]) === true) {
+			return $this->lowercaseHeaders[$field];
 		} else {
 			return null;
 		}
@@ -92,7 +104,7 @@ class Response {
 	 * @since  1.0.0
 	 */
 	public function getRawData() {
-		return $this->_body;
+		return $this->body;
 	}
 	/**
 	 * Get body as decoded data
@@ -102,9 +114,9 @@ class Response {
 	 */
 	public function getData() {
 		if(strncmp('application/json', $this->getHeaderField('Content-Type'), 16) == 0) {
-			return json_decode($this->_body, true);
+			return json_decode($this->body, true);
 		} else {
-			return $this->_body;
+			return $this->body;
 		}
 	}
 	/**

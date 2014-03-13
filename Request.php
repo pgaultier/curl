@@ -181,6 +181,20 @@ class Request  {
 	}
 
 	/**
+	 * Define the proxy to use (including type)
+	 *
+	 * @param string $host proxy host
+	 * @param string $type proxy type, default to HTTP
+	 *
+	 * @return void
+	 * @since  XXX
+	 */
+	public function setProxy($host, $type=CURLPROXY_HTTP) {
+		$this->setOption(CURLOPT_PROXY, $host);
+		$this->setOption(CURLOPT_PROXYTYPE, $type);
+	}
+
+	/**
 	 * Define proxy authentication parameters
 	 *
 	 * @param string $username username for proxy auth

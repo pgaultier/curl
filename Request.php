@@ -7,7 +7,7 @@
  * @author    Philippe Gaultier <pgaultier@sweelix.net>
  * @copyright 2010-2014 Sweelix
  * @license   http://www.sweelix.net/license license
- * @version   1.0.0
+ * @version   1.1.0
  * @link      http://www.sweelix.net
  * @category  curl
  * @package   sweelix.curl
@@ -38,7 +38,7 @@ namespace sweelix\curl;
  * @author    Philippe Gaultier <pgaultier@sweelix.net>
  * @copyright 2010-2014 Sweelix
  * @license   http://www.sweelix.net/license license
- * @version   1.0.0
+ * @version   1.1.0
  * @link      http://www.sweelix.net
  * @category  curl
  * @package   sweelix.curl
@@ -187,7 +187,7 @@ class Request  {
 	 * @param string $type proxy type, default to HTTP
 	 *
 	 * @return void
-	 * @since  XXX
+	 * @since  1.1.0
 	 */
 	public function setProxy($host, $type=CURLPROXY_HTTP) {
 		$this->setOption(CURLOPT_PROXY, $host);

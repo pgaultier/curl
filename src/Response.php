@@ -163,7 +163,7 @@ class Response {
 			$matches = array();
 			if(preg_match('#multipart/([^;]+); boundary=([a-z0-9]+)#i', $this->getHeaderField('Content-Type'), $matches) > 0) {
 				$delimiter = $matches[2];
-				$body = explode("\r\n", $this->_body);
+				$body = explode("\r\n", $this->body);
 				$part = -1;
 				$start = false;
 				$end = false;

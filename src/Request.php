@@ -281,8 +281,9 @@ class Request  {
 			curl_setopt_array($ch, $this->curlOptions);
 			curl_exec($ch);
 			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$rawInfo = curl_getinfo($ch);
 			curl_close($ch);
-			$response = array($httpCode, $responseHeaders, $responseBody);
+			$response = array($httpCode, $responseHeaders, $responseBody, $rawInfo);
 		} catch(\Exception $e) {
 			// trace exception
 			$response = null;
@@ -299,7 +300,7 @@ class Request  {
 	public function execute() {
 		$response = $this->_preRun();
 		if($response !== null) {
-			$response = new Response($response[0], $response[1], $response[2]);
+			$response = new Response($response[0], $response[1], $response[2], $response[3]);
 		}
 		return $response;
 	}

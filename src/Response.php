@@ -34,6 +34,11 @@ class Response {
 	 */
 	protected $statusCode;
 	/**
+	 * @var array raw curl information
+	 */
+	protected $rawInformation;
+
+	/**
 	 * @var array response headers
 	 */
 	protected $headers;
@@ -55,9 +60,9 @@ class Response {
 	 * @return Response
 	 * @since  1.0.0
 	 */
-	public function __construct($statusCode, $headers=null, $body=null) {
+	public function __construct($statusCode, $headers=null, $body=null, $rawInfo=null) {
 		$this->statusCode = $statusCode;
-		$this->headers = $this->_parseHeaders($headers);
+		$this->headers = static::parseHttpHeaders($headers);
 		if(is_array($this->headers) === true) {
 			$this->lowercaseHeaders = array_change_key_case($this->headers, CASE_LOWER);
 		}
@@ -119,29 +124,120 @@ class Response {
 			return $this->body;
 		}
 	}
+
 	/**
-	 * Parse HTTP header string into an assoc array
+	 * Check if current response is a multipart
 	 *
-	 * @param string $headers
+	 * @return boolean
+	 * @since  XXX
+	 */
+	public function getIsMultipart() {
+		return (($this->getHeaderField('Content-Type') !== null) && (strncasecmp('multipart', $this->getHeaderField('Content-Type'), 9) === 0));
+	}
+
+	/**
+	 * Retrieve request information. return null if information field does not exists
+	 *
+	 * @param string $element name of the field to retrieve @see http://www.php.net/manual/fr/function.curl-getinfo.php
+	 *
+	 * @return mixed
+	 * @since  XXX
+	 */
+	public function getInfo($element) {
+		$response = null;
+		if((is_array($this->rawInformation) === true) && (isset($this->rawInformation[$element]) === true)) {
+			$response = $this->rawInformation[$element];
+		}
+		return $response;
+	}
+
+	/**
+	 * Extract all subresponses which are in multipart form
+	 *
+	 * @return Response[]
+	 * @since  XXX
+	 */
+	public function extractMultipartDataAsResponse() {
+		$result = null;
+		if($this->getIsMultipart() === true) {
+			$matches = array();
+			if(preg_match('#multipart/([^;]+); boundary=([a-z0-9]+)#i', $this->getHeaderField('Content-Type'), $matches) > 0) {
+				$delimiter = $matches[2];
+				$body = explode("\r\n", $this->body);
+				$part = -1;
+				$start = false;
+				$end = false;
+				$data = array();
+				$isHeader = true;
+				foreach($body as $i => $line) {
+					$skip = false;
+					if($line === '--'.$delimiter) {
+						$part++;
+						$start = true;
+						$skip = true;
+						$isHeader = true;
+					} elseif($line === '--'.$delimiter.'--') {
+						$end = true;
+						$skip = true;
+					}
+					if(($start === true) && ($end === false) && ($skip === false)) {
+						if(($isHeader === true) && ($line == '')) {
+							$isHeader = false;
+						} else {
+							if(($isHeader === true) && (strncmp('Content-Type', $line, 12) === 0)) {
+								$data[$part]['headers'][] = $line;
+							} else {
+								$data[$part]['body'][] = $line;
+							}
+						}
+					} elseif($end === true) {
+						break;
+					}
+				}
+				$result = array();
+				foreach($data as $i => $rawResponse) {
+					$response = new static($this->statusCode, implode("\r\n", $rawResponse['headers']), implode("\r\n", $rawResponse['body']), $this->rawInformation);
+					if($response->getIsMultipart() === true) {
+						$subResponses = $response->extractMultipartDataAsResponse();
+						if(is_array($subResponses) === true) {
+							$result = array_merge($result, $subResponses);
+						}
+					} else {
+						$result[] = $response;
+					}
+				}
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Parse an HTTP Header string into an asssociative array of
+	 * response headers.
+	 *
+	 * @param string $headers raw http headers
 	 *
 	 * @return array
-	 * @since  1.0.0
+	 * @since  XXX
 	 */
-	protected function _parseHeaders($headers) {
-		$retVal = array();
-		$fields = array_filter(explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $headers)));
+	public static function parseHttpHeaders($headers) {
+		$parsedHeaders = array();
+		$fields = explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $headers));
 		foreach ($fields as $field) {
-        	if(strncasecmp('http', $field, 4) == 0) {
-        		$retVal = array();
-        	}else if (preg_match('/([^:]+): (.+)/m', $field, $match)) {
-                $match[1] = preg_replace('/(?<=^|[\x09\x20\x2D])./e', 'strtoupper("\0")', strtolower(trim($match[1])));
-                if (isset($retVal[$match[1]])) {
-                    $retVal[$match[1]] = array($retVal[$match[1]], $match[2]);
-                } else {
-                    $retVal[$match[1]] = trim($match[2]);
-                }
-            }
-        }
-        return $retVal;
-    }
+			if (preg_match('/([^:]+): (.+)/m', $field, $match)) {
+				$match[1] = preg_replace('/(?<=^|[\x09\x20\x2D])./e', 'strtoupper(\'\0\')', strtolower(trim($match[1])));
+				if (isset($parsedHeaders[$match[1]]) === true) {
+					if(is_array($parsedHeaders[$match[1]]) === false) {
+						$parsedHeaders[$match[1]] = array($parsedHeaders[$match[1]]);
+					} else {
+						$parsedHeaders[$match[1]][] = trim($match[2]);
+					}
+				} else {
+					$parsedHeaders[$match[1]] = trim($match[2]);
+				}
+			}
+		}
+		return $parsedHeaders;
+	}
+
 }

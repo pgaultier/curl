@@ -320,6 +320,7 @@ class Request  {
 				$this->setOption(CURLOPT_POST, true);
 				break;
 			case 'HEAD':
+				$this->setOption(CURLOPT_NOBODY, true);
 			case 'PUT':
 			case 'DELETE':
 				$this->setOption(CURLOPT_CUSTOMREQUEST, $this->method);

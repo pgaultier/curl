@@ -63,6 +63,7 @@ class Response {
 	public function __construct($statusCode, $headers=null, $body=null, $rawInfo=null) {
 		$this->statusCode = $statusCode;
 		$this->headers = static::parseHttpHeaders($headers);
+		$this->rawInformation = $rawInfo;
 		if(is_array($this->headers) === true) {
 			$this->lowercaseHeaders = array_change_key_case($this->headers, CASE_LOWER);
 		}
@@ -184,7 +185,7 @@ class Response {
 						if(($isHeader === true) && ($line == '')) {
 							$isHeader = false;
 						} else {
-							if(($isHeader === true) && (strncmp('Content-Type', $line, 12) === 0)) {
+							if($isHeader === true) {
 								$data[$part]['headers'][] = $line;
 							} else {
 								$data[$part]['body'][] = $line;

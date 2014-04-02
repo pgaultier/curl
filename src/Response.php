@@ -7,7 +7,7 @@
  * @author    Philippe Gaultier <pgaultier@sweelix.net>
  * @copyright 2010-2014 Sweelix
  * @license   http://www.sweelix.net/license license
- * @version   1.1.0
+ * @version   1.1.1
  * @link      http://www.sweelix.net
  * @category  curl
  * @package   sweelix.curl
@@ -23,7 +23,7 @@ namespace sweelix\curl;
  * @author    Philippe Gaultier <pgaultier@sweelix.net>
  * @copyright 2010-2014 Sweelix
  * @license   http://www.sweelix.net/license license
- * @version   1.1.0
+ * @version   1.1.1
  * @link      http://www.sweelix.net
  * @category  curl
  * @package   sweelix.curl

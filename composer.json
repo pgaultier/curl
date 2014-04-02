@@ -12,13 +12,9 @@
 		"php" : ">=5.3.0",
 		"ext-curl" : "*"
 	},
-	"require-dev" : {
-		"php" : ">=5.3.0",
-		"ext-curl" : "*"
-	},
 	"autoload" : {
 		"psr-4" : {
-			"sweelix\\curl\\" : ""
+			"sweelix\\curl\\" : "src"
 		}
 	}
 }

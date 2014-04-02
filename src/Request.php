@@ -7,7 +7,7 @@
  * @author    Philippe Gaultier <pgaultier@sweelix.net>
  * @copyright 2010-2014 Sweelix
  * @license   http://www.sweelix.net/license license
- * @version   1.1.0
+ * @version   1.1.1
  * @link      http://www.sweelix.net
  * @category  curl
  * @package   sweelix.curl
@@ -38,7 +38,7 @@ namespace sweelix\curl;
  * @author    Philippe Gaultier <pgaultier@sweelix.net>
  * @copyright 2010-2014 Sweelix
  * @license   http://www.sweelix.net/license license
- * @version   1.1.0
+ * @version   1.1.1
  * @link      http://www.sweelix.net
  * @category  curl
  * @package   sweelix.curl
@@ -281,8 +281,9 @@ class Request  {
 			curl_setopt_array($ch, $this->curlOptions);
 			curl_exec($ch);
 			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$rawInfo = curl_getinfo($ch);
 			curl_close($ch);
-			$response = array($httpCode, $responseHeaders, $responseBody);
+			$response = array($httpCode, $responseHeaders, $responseBody, $rawInfo);
 		} catch(\Exception $e) {
 			// trace exception
 			$response = null;
@@ -299,7 +300,7 @@ class Request  {
 	public function execute() {
 		$response = $this->_preRun();
 		if($response !== null) {
-			$response = new Response($response[0], $response[1], $response[2]);
+			$response = new Response($response[0], $response[1], $response[2], $response[3]);
 		}
 		return $response;
 	}
@@ -319,6 +320,7 @@ class Request  {
 				$this->setOption(CURLOPT_POST, true);
 				break;
 			case 'HEAD':
+				$this->setOption(CURLOPT_NOBODY, true);
 			case 'PUT':
 			case 'DELETE':
 				$this->setOption(CURLOPT_CUSTOMREQUEST, $this->method);
